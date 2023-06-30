@@ -108,6 +108,7 @@ under the License.
 %template(StringVector) std::vector< std::string >;
 %template(Int32Vector) std::vector< int32_t >;
 %template(UInt32Vector) std::vector< uint32_t >;
+%template(Int64Vector) std::vector< int64_t >;
 // Vector of int64 and uint64 are tough to port because of long vs long long platform
 // Indeed c++ long corresponds to int in java where c++ long long corresponds to long in java
 %template(FloatVector) std::vector< float >;
