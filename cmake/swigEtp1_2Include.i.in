@@ -1989,6 +1989,7 @@ namespace ETP_NS
 	public:
 		Server();
 		void listen(ServerInitializationParameters* serverInitializationParams, int threadCount);
+		void stop();
 	};
 	
 #ifdef WITH_FESAPI
