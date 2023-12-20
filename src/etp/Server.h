@@ -489,6 +489,7 @@ namespace ETP_NS
 
 		ServerInitializationParameters* serverInitializationParams_;
 		std::vector< std::shared_ptr<AbstractSession> > sessions_;
+		std::function<void()> stopper_;
 
 		template<class Body, class Allocator>
 		static void
@@ -1248,6 +1249,10 @@ namespace ETP_NS
 				ioc.stop();
 			});
 
+			stopper_ = [&ioc](){
+				ioc.stop();
+			};
+
 			// Run the I/O service on the requested number of threads
 			std::vector<std::thread> v;
 			v.reserve(threadCount - 1);
@@ -1258,6 +1263,11 @@ namespace ETP_NS
 				ioc.run();
 			});
 			ioc.run();
+		}
+
+		void stop()
+		{
+			stopper_();
 		}
 	};
 }
