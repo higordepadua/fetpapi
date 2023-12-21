@@ -1196,7 +1196,7 @@ namespace ETP_NS
 			auto const address = boost::asio::ip::make_address(serverInitializationParams->getHost());
 
 			// The io_context is required for all I/O
-			boost::asio::io_context ioc{ threadCount };
+			boost::asio::io_context ioc;//{ threadCount };
 
 #ifdef WITH_ETP_SSL
 			// The context life scope must the server life scope. That's why it is not inside the below condition.
@@ -1254,14 +1254,14 @@ namespace ETP_NS
 			};
 
 			// Run the I/O service on the requested number of threads
-			std::vector<std::thread> v;
+			/*std::vector<std::thread> v;
 			v.reserve(threadCount - 1);
 			for (auto i = threadCount - 1; i > 0; --i)
 				v.emplace_back(
 					[&ioc]
 			{
 				ioc.run();
-			});
+			});*/
 			ioc.run();
 		}
 
