@@ -1196,7 +1196,7 @@ namespace ETP_NS
 			auto const address = boost::asio::ip::make_address(serverInitializationParams->getHost());
 
 			// The io_context is required for all I/O
-			boost::asio::io_context ioc;//{ threadCount };
+			std::shared_ptr<boost::asio::io_context> ioc = std::make_shared<boost::asio::io_context>();//{ threadCount };
 
 #ifdef WITH_ETP_SSL
 			// The context life scope must the server life scope. That's why it is not inside the below condition.
@@ -1228,29 +1228,33 @@ namespace ETP_NS
 				ctx.use_tmp_dh(
 					boost::asio::buffer(dh.data(), dh.size()));
 
-				std::make_shared<Server::listener>(ioc, tcp::endpoint{ address, serverInitializationParams->getPort() }, sessions_, serverInitializationParams_, ctx, true)->run();
+				std::make_shared<Server::listener>(*ioc, tcp::endpoint{ address, serverInitializationParams->getPort() }, sessions_, serverInitializationParams_, ctx, true)->run();
 			}
 			else {
-				std::make_shared<Server::listener>(ioc, tcp::endpoint{ address, serverInitializationParams->getPort() }, sessions_, serverInitializationParams_, ctx, false)->run();
+				std::make_shared<Server::listener>(*ioc, tcp::endpoint{ address, serverInitializationParams->getPort() }, sessions_, serverInitializationParams_, ctx, false)->run();
 			}
 #else
 				// Create and launch a listening port
-			std::make_shared<Server::listener>(ioc, tcp::endpoint{ address, serverInitializationParams->getPort() }, sessions_, serverInitializationParams_)->run();
+			std::make_shared<Server::listener>(*ioc, tcp::endpoint{ address, serverInitializationParams->getPort() }, sessions_, serverInitializationParams_)->run();
 #endif
 
 			// Capture SIGINT and SIGTERM to perform a clean shutdown
-			boost::asio::signal_set signals(ioc, SIGINT, SIGTERM);
+			boost::asio::signal_set signals(*ioc, SIGINT, SIGTERM);
 			signals.async_wait(
-				[&](beast::error_code const&, int)
+				[ioc](beast::error_code const&, int)
 			{
 				// Stop the `io_context`. This will cause `run()`
 				// to return immediately, eventually destroying the
 				// `io_context` and all of the sockets in it.
-				ioc.stop();
+				if(ioc) {
+					ioc->stop();
+				}
 			});
 
-			stopper_ = [&ioc](){
-				ioc.stop();
+			stopper_ = [ioc](){
+				if(ioc) {
+					ioc->stop();
+				}
 			};
 
 			// Run the I/O service on the requested number of threads
@@ -1262,7 +1266,7 @@ namespace ETP_NS
 			{
 				ioc.run();
 			});*/
-			ioc.run();
+			ioc->run();
 		}
 
 		void stop()
